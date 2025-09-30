@@ -54,22 +54,6 @@ data "aws_iam_policy_document" "account_specific_policy" {
     ]
     sid = "AllowUseOfRemoteStateBackendKMSKey"
   }
-  statement {
-    actions = [
-      "dynamodb:Batch*",
-      "dynamodb:DeleteItem",
-      "dynamodb:Describe*",
-      "dynamodb:Get*",
-      "dynamodb:PutItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:UpdateItem"
-    ]
-    resources = [
-      aws_dynamodb_table.remote_state_backend.arn
-    ]
-    sid = "AllowAccessToLockTable"
-  }
 }
 
 resource "aws_iam_policy" "account_state_policy" {
