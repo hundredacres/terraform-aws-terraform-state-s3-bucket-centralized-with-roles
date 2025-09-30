@@ -3,11 +3,6 @@ output "bucket" {
   value       = aws_s3_bucket.remote_state_backend.bucket
 }
 
-output "dynamodb_table" {
-  description = "dynamodb friendly name"
-  value       = aws_dynamodb_table.remote_state_backend.id
-}
-
 output "kms_default_key_arn" {
   description = "kms key alias arn that is created by default. Use this when just using this for a state bucket and not from other accounts."
   value       = aws_kms_key.remote_state_backend.arn
