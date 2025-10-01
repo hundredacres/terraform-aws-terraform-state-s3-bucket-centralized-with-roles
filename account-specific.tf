@@ -1,17 +1,17 @@
 locals {
-  account_from_arn = "/^([^:]*)+:([^:]*)+:([^:]*)+:([^:]*)+:([^:]*)+:([^/]*)+(/([^/]*))?$/"
+  account_from_arn = "/^arn:aws:[^:]*:[^:]*:([0-9]+):.*$/"
 }
 
 resource "aws_kms_key" "specific_remote_state_backend" {
   count               = length(var.account_arns)
-  description         = "Key for ${replace(var.account_arns[count.index], local.account_from_arn, "$5")} remote state backend"
+  description         = "Key for ${replace(var.account_arns[count.index], local.account_from_arn, "$1")} remote state backend"
   enable_key_rotation = true
   tags                = local.common_tags
 }
 
 resource "aws_kms_alias" "specific_state_backend" {
   count         = length(var.account_arns)
-  name          = "alias/${replace("${var.name_prefix}-remote-state-backend-${replace(var.account_arns[count.index], local.account_from_arn, "$5")}${var.name_suffix}", "/[^0-9A-Za-z_/-]/", "-")}"
+  name          = "alias/${replace("${var.name_prefix}-remote-state-backend-${replace(var.account_arns[count.index], local.account_from_arn, "$1")}${var.name_suffix}", "/[^0-9A-Za-z_/-]/", "-")}"
   target_key_id = aws_kms_key.specific_remote_state_backend[count.index].key_id
 }
 
@@ -36,8 +36,8 @@ data "aws_iam_policy_document" "account_specific_policy" {
       "s3:Put*"
     ]
     resources = [
-      "${aws_s3_bucket.remote_state_backend.arn}/${replace(var.account_arns[count.index], local.account_from_arn, "$5")}",
-      "${aws_s3_bucket.remote_state_backend.arn}/${replace(var.account_arns[count.index], local.account_from_arn, "$5")}/*"
+      "${aws_s3_bucket.remote_state_backend.arn}/${replace(var.account_arns[count.index], local.account_from_arn, "$1")}",
+      "${aws_s3_bucket.remote_state_backend.arn}/${replace(var.account_arns[count.index], local.account_from_arn, "$1")}/*"
     ]
     sid = "AllowAccessToRemoteStateBackendKey"
   }
@@ -58,8 +58,8 @@ data "aws_iam_policy_document" "account_specific_policy" {
 
 resource "aws_iam_policy" "account_state_policy" {
   count       = length(var.account_arns)
-  name        = "${replace(var.account_arns[count.index], local.account_from_arn, "$5")}-terraform-state-assumed-policy"
-  description = "Policy given upon role assumption of ${replace(var.account_arns[count.index], local.account_from_arn, "$5")}-terraform-state role"
+  name        = "${replace(var.account_arns[count.index], local.account_from_arn, "$1")}-terraform-state-assumed-policy"
+  description = "Policy given upon role assumption of ${replace(var.account_arns[count.index], local.account_from_arn, "$1")}-terraform-state role"
   policy      = data.aws_iam_policy_document.account_specific_policy[count.index].json
 }
 
@@ -81,7 +81,7 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
 resource "aws_iam_role" "account_state_role" {
   count              = length(var.account_arns)
-  name               = "${replace(var.account_arns[count.index], local.account_from_arn, "$5")}-terraform-state"
+  name               = "${replace(var.account_arns[count.index], local.account_from_arn, "$1")}-terraform-state"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy[count.index].json
 }
 
