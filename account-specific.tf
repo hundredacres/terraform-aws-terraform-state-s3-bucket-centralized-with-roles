@@ -20,6 +20,7 @@ data "aws_iam_policy_document" "account_specific_policy" {
   statement {
     actions = [
       "s3:ListBucket",
+      "s3:ListAllMyBuckets",
       "s3:GetBucketLocation",
       "s3:ListBucketMultipartUploads"
     ]
